@@ -1,0 +1,86 @@
+<?php
+
+function blocks_settings_block_view_alter(&$data, $block) {
+  //dsm($block->delta);
+}
+
+function blocks_settings_form_alter(&$form, &$form_state, $form_id) {
+  //dsm($form_id);
+  if ($form_id == 'webform_client_form_4') {
+    global $user;
+    $user_team = db_select('field_data_field_team', 'team')  
+    ->fields('team', array('field_team_value'))
+    ->condition('team.entity_id', $user->uid)
+    ->execute()
+    ->fetchField();
+    if (!empty($user_team)) {
+      hide($form);
+    }
+  }
+  if ($form_id == 'webform_client_form_5') {
+    //dsm($form);
+    $form['#submit'][] = 'blocks_settings_tournament_enter';
+  }
+}
+
+function blocks_settings_tournament_enter($form, &$form_state) {
+  dpm($form_state);
+}
+
+/*
+ * Implement hook_block_info(). 
+ */
+function blocks_settings_info() {
+  $blocks = array();
+  $blocks['register_team'] = array (
+    'info' => t('Register team block'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['tournament_enter'] = array (
+    'info' => t('Tournament enter'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/*
+ * Implement hook_block_view(). 
+ */
+function blocks_settings_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {    
+    /*Register team*/
+    case 'register_team':
+      module_load_include('inc','tester','includes/tester.test_killer');
+      $block['subject'] = '';
+      $block['content'] = tester_test_killer_form_callback();
+    break;
+    /*Tournament enter*/
+    case 'register_team':
+      module_load_include('inc','tester','includes/tester.screen_download');
+      $block['subject'] = 'Current condition';
+      $block['content'] = '<div class="current-condition-wrapper"><div class="current-condition"></div></div>' . tester_screen_download_form_callback();
+    break;
+  }
+  return $block;
+}
+
+function tester_build_stop_form($form, &$form_state) {
+  form_load_include($form_state, 'inc', 'tester', 'includes/tester.test_killer');
+  $form['#prefix'] = '<div id="build-stop-form">';
+  $form['#suffix'] = '</div>';
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'End tests',
+    '#attributes' => array(
+      'class' => array('end_proc'),
+    ),
+    '#submit' => array('tester_build_stop_form_submit'),
+    '#ajax' => array(
+      'callback' => 'tester_ajax_build_stop_form_callback',
+      'wrapper' => 'build-stop-form',
+      'effect' => 'fade',
+      'progress' => array('type' => 'none'),
+    ),
+  );
+}
