@@ -1,0 +1,4 @@
+project/adminer.php
+project/*.gz
+backup/
+Thumbs.db
