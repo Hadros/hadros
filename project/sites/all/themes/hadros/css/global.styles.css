@@ -1822,8 +1822,9 @@ tr.error {}
  *   FRONT PAGE
  * ========================================================================== */
 
-#block-webform-client-block-4 {
+#block-blocks-settings-register-team {
   float: right;
+  margin-top: 30px;
 }
 
 /* =============================================================================

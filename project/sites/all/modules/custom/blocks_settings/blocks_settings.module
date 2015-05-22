@@ -6,7 +6,7 @@ function blocks_settings_block_view_alter(&$data, $block) {
 
 function blocks_settings_form_alter(&$form, &$form_state, $form_id) {
   //dsm($form_id);
-  if ($form_id == 'webform_client_form_4') {
+  if ($form_id == 'blocks_settings_register_team_form') {
     global $user;
     $user_team = db_select('field_data_field_team', 'team')  
     ->fields('team', array('field_team_value'))
@@ -17,7 +17,7 @@ function blocks_settings_form_alter(&$form, &$form_state, $form_id) {
       hide($form);
     }
   }
-  if ($form_id == 'webform_client_form_5') {
+  if ($form_id == 'blocks_settings_tournament_enter_form') {
     //dsm($form);
     $form['#submit'][] = 'blocks_settings_tournament_enter';
   }
@@ -30,7 +30,7 @@ function blocks_settings_tournament_enter($form, &$form_state) {
 /*
  * Implement hook_block_info(). 
  */
-function blocks_settings_info() {
+function blocks_settings_block_info() {
   $blocks = array();
   $blocks['register_team'] = array (
     'info' => t('Register team block'),
@@ -51,36 +51,95 @@ function blocks_settings_block_view($delta = '') {
   switch ($delta) {    
     /*Register team*/
     case 'register_team':
-      module_load_include('inc','tester','includes/tester.test_killer');
       $block['subject'] = '';
-      $block['content'] = tester_test_killer_form_callback();
+      $block['content'] = blocks_settings_register_team_form_callback();
     break;
     /*Tournament enter*/
-    case 'register_team':
-      module_load_include('inc','tester','includes/tester.screen_download');
-      $block['subject'] = 'Current condition';
-      $block['content'] = '<div class="current-condition-wrapper"><div class="current-condition"></div></div>' . tester_screen_download_form_callback();
+    case 'tournament_enter':
+      $block['subject'] = '';
+      $block['content'] = blocks_settings_tournament_enter_form_callback();
     break;
   }
   return $block;
 }
 
-function tester_build_stop_form($form, &$form_state) {
-  form_load_include($form_state, 'inc', 'tester', 'includes/tester.test_killer');
-  $form['#prefix'] = '<div id="build-stop-form">';
+function blocks_settings_register_team_form($form, &$form_state) {
+  $form['#prefix'] = '<div id="register-team-form">';
   $form['#suffix'] = '</div>';
   $form['actions']['submit'] = array(
     '#type' => 'submit',
-    '#value' => 'End tests',
+    '#value' => t('Зарегистрироваться'),
     '#attributes' => array(
-      'class' => array('end_proc'),
+      'class' => array('reg-team'),
     ),
-    '#submit' => array('tester_build_stop_form_submit'),
+    '#submit' => array('blocks_settings_register_team_form_submit'),
     '#ajax' => array(
-      'callback' => 'tester_ajax_build_stop_form_callback',
-      'wrapper' => 'build-stop-form',
+      'callback' => 'blocks_settings_ajax_register_team_form_callback',
+      'wrapper' => 'register-team-form',
       'effect' => 'fade',
       'progress' => array('type' => 'none'),
     ),
   );
+  return $form;
+}
+
+function blocks_settings_tournament_enter_form($form, &$form_state) {
+  $form['#prefix'] = '<div id="tournament-enter-form">';
+  $form['#suffix'] = '</div>';
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Принять участие'),
+    '#attributes' => array(
+      'class' => array('tournament-enter'),
+    ),
+    '#submit' => array('blocks_settings_tournament_enter_form_submit'),
+    '#ajax' => array(
+      'callback' => 'blocks_settings_ajax_tournament_enter_form_callback',
+      'wrapper' => 'tournament-enterm-form',
+      'effect' => 'fade',
+      'progress' => array('type' => 'none'),
+    ),
+  );
+  return $form;
+}
+
+function blocks_settings_register_team_form_callback() {
+  $form = drupal_get_form('blocks_settings_register_team_form');
+  $form = drupal_render($form);
+  return $form;
+}
+
+function blocks_settings_tournament_enter_form_callback() {
+  $form = drupal_get_form('blocks_settings_tournament_enter_form');
+  $form = drupal_render($form);
+  return $form;
+}
+
+/**
+ * Ajax callback for tester_form.
+ */
+function blocks_settings_ajax_register_team_form_callback($form, &$form_state) {
+  $status = $form_state['status'];
+  if ($status == STATUS_STOPPED) {
+    return '<p>The test was stopped by User</p>';
+  }
+  else {
+    return '<p>Test has been finished already!</p>';
+  }
+}
+
+function blocks_settings_ajax_tournament_enter_form_callback($form, &$form_state) {
+  $status = $form_state['status'];
+  if ($status == STATUS_STOPPED) {
+    return '<p>The test was stopped by User</p>';
+  }
+  else {
+    return '<p>Test has been finished already!</p>';
+  }
+}
+
+/**
+ * Submit for tester_form.
+ */
+function tester_build_stop_form_submit($form, &$form_state) {
 }
